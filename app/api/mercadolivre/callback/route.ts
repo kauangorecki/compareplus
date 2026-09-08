@@ -76,6 +76,35 @@ export async function GET(request: Request) {
     );
   }
 
+  const accessToken = dados.access_token;
+  const refreshToken = dados.refresh_token;
+
+  if (!accessToken || !refreshToken) {
+    return Response.json(
+      { erro: "Mercado Livre não retornou os tokens esperados." },
+      { status: 500 }
+    );
+  }
+
+  cookieStore.set("ml_access_token", accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: dados.expires_in || 21600,
+  });
+
+  cookieStore.set("ml_refresh_token", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 180,
+  });
+
+  cookieStore.delete("ml_oauth_state");
+  cookieStore.delete("ml_code_verifier");
+
   return Response.json({
     mensagem: "Mercado Livre conectado com sucesso!",
     user_id: dados.user_id,
