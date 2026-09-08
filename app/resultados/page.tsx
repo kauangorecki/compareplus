@@ -12,11 +12,12 @@ export default async function Resultados({
     sucesso: false,
     produto: produto,
     ofertas: [] as {
-      loja: string;
-      preco: number;
-      frete: string;
-      avaliacao: number;
-    }[],
+  loja: string;
+  preco: number;
+  frete: string;
+  avaliacao: number;
+  link: string;
+}[],
   };
 
   if (produto) {
