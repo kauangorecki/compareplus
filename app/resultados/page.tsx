@@ -20,16 +20,16 @@ export default async function Resultados({
 }[],
   };
 
-  if (produto) {
-    const resposta = await fetch(
-      `http://localhost:3000/api/buscar?q=${encodeURIComponent(produto)}`,
-      {
-        cache: "no-store",
-      }
-    );
+if (produto) {
+  const resposta = await fetch(
+    `${process.env.NEXT_PUBLIC_SITE_URL}/api/buscar?q=${encodeURIComponent(produto)}`,
+    {
+      cache: "no-store",
+    }
+  );
 
-    dados = await resposta.json();
-  }
+  dados = await resposta.json();
+}
 
   const ofertas = dados.ofertas;
 
