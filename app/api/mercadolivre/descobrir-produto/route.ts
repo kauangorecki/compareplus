@@ -23,16 +23,17 @@ export async function GET(request: Request) {
     );
   }
 
-  const apiUrl = new URL(
+  // 1. Procurar o produto no catálogo
+  const buscaUrl = new URL(
     "https://api.mercadolibre.com/products/search"
   );
 
-  apiUrl.searchParams.set("status", "active");
-  apiUrl.searchParams.set("site_id", "MLB");
-  apiUrl.searchParams.set("q", produto);
-  apiUrl.searchParams.set("limit", "10");
+  buscaUrl.searchParams.set("status", "active");
+  buscaUrl.searchParams.set("site_id", "MLB");
+  buscaUrl.searchParams.set("q", produto);
+  buscaUrl.searchParams.set("limit", "1");
 
-  const resposta = await fetch(apiUrl.toString(), {
+  const buscaResposta = await fetch(buscaUrl.toString(), {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       Accept: "application/json",
@@ -40,13 +41,55 @@ export async function GET(request: Request) {
     cache: "no-store",
   });
 
-  const dados = await resposta.json();
+  const buscaDados = await buscaResposta.json();
+
+  if (!buscaResposta.ok) {
+    return Response.json(
+      {
+        erro: "Erro ao procurar produto no Mercado Livre.",
+        detalhes: buscaDados,
+      },
+      { status: buscaResposta.status }
+    );
+  }
+
+  const primeiroProduto = buscaDados.results?.[0];
+
+  if (!primeiroProduto?.id) {
+    return Response.json(
+      {
+        sucesso: false,
+        erro: "Nenhum produto encontrado.",
+      },
+      { status: 404 }
+    );
+  }
+
+  const productId = primeiroProduto.id;
+
+  // 2. Consultar detalhes do produto
+  const produtoResposta = await fetch(
+    `https://api.mercadolibre.com/products/${productId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    }
+  );
+
+  const produtoDados = await produtoResposta.json();
 
   return Response.json(
     {
-      status_api: resposta.status,
-      resposta: dados,
+      status_busca: buscaResposta.status,
+      status_produto: produtoResposta.status,
+      produto: primeiroProduto,
+      detalhes: produtoDados,
     },
-    { status: resposta.ok ? 200 : resposta.status }
+    {
+      status: produtoResposta.ok ? 200 : produtoResposta.status,
+    }
   );
 }
