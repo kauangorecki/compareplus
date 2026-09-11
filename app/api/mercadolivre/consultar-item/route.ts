@@ -34,3 +34,4 @@ export async function GET() {
     },
     { status: resposta.ok ? 200 : resposta.status }
   );
+}
