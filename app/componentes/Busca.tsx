@@ -1,16 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function Busca() {
   const [produto, setProduto] = useState("");
-  const router = useRouter();
 
-  function buscarProduto() {
-    if (!produto.trim()) return;
+  async function buscarProduto() {
+    const produtoLimpo = produto.trim();
 
-    router.push(`/resultados?q=${encodeURIComponent(produto)}`);
+    if (!produtoLimpo) return;
+
+    try {
+      const resposta = await fetch(
+        "/api/ia?q=" + encodeURIComponent(produtoLimpo)
+      );
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok || !dados.sucesso) {
+        console.error("Erro ao consultar IA:", dados);
+        return;
+      }
+
+      console.log("Resposta da IA:", dados.resposta);
+
+      const url = "/resultados?q=" + encodeURIComponent(produtoLimpo);
+
+      window.location.href = url;
+    } catch (erro) {
+      console.error("Erro ao consultar IA:", erro);
+    }
   }
 
   return (
@@ -33,6 +52,7 @@ export default function Busca() {
       </div>
 
       <button
+        type="button"
         onClick={buscarProduto}
         className="rounded-xl bg-lime-400 px-8 py-4 font-bold text-black transition hover:bg-lime-300"
       >
